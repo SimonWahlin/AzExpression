@@ -1,0 +1,1 @@
+$Script:Functions = [Azure.Deployments.Expression.Expressions.ExpressionBuiltInFunctions]::new()
