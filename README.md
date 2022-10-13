@@ -5,6 +5,7 @@ This is the repository for the AzExpression PowerShell Module, a module that all
 Commands implemented:
 
 - [New-AzUniqueString](./docs/en-US/New-AzUniqueString.md) - Invoke the Azure ARM template function uniqueString() locally in PowerShell
+- [New-AzGuid](./docs/en-US/New-AzGuid.md) - Invoke the Azure ARM template function guid() locally in PowerShell
 
 ## Installation
 
