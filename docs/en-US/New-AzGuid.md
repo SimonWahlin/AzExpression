@@ -59,4 +59,4 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## RELATED LINKS
 
-https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-functions-string#guid
+[https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-functions-string#guid](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-functions-string#guid)
