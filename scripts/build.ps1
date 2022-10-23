@@ -7,3 +7,5 @@ Push-Location -Path "$PSScriptRoot/../src"
 $null = New-ExternalHelp -Path '../docs/en-US' -OutputPath './en-US'
 Build-Module
 Pop-Location
+
+Compress-Archive -Path "$PSScriptRoot/../bin/AzExpression" -DestinationPath "$ProjectRoot/BicepNet.PS.zip" -Force
