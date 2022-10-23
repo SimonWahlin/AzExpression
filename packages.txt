@@ -1,0 +1,3 @@
+Azure.Deployments.Expression@1.0.694
+Azure.Deployments.Core@1.0.694
+Microsoft.PowerPlatform.ResourceStack@6.0.0.1323

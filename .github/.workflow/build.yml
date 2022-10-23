@@ -1,0 +1,156 @@
+name: Build, Test and Release
+
+on:
+  push:
+    branches: [master,main]
+    tags: [v*]
+  pull_request:
+    types: [review_requested]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_INSTALL_DIR: $GITHUB_WORKSPACE/tmp/dotnet
+      MODULE_NAME: AzExpressions
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set PSModulePath
+      shell: pwsh
+      run: |
+        $PSModulePath = @(
+          [System.IO.Path]::Combine($Env:GITHUB_WORKSPACE, 'tmp', 'modules'),
+          $Env:PSModulePath
+        ) -join  [System.IO.Path]::PathSeparator
+        "PSModulePath=$PSModulePath" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Setup assets cache
+      id: assetscache
+      uses: actions/cache@v3
+      with:
+        path: |
+          tmp/modules
+          tmp/tools
+          tmp/dotnet
+        key: ${{ hashFiles('scripts\downloadDependencies.ps1','packages.txt') }}
+
+    - name: Setup.NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '6.0'
+
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.9.14
+      with:
+        versionSpec: '5.x'
+
+    - name: Determine Version
+      id:   gitversion
+      uses: gittools/actions/gitversion/execute@v0.9.14
+
+    - name: Download required assemblies
+      if: steps.assetscache.outputs.cache-hit != 'true'
+      shell: pwsh
+      run: ./scripts/downloadDependencies.ps1
+
+    - name: Build module
+      shell: pwsh
+      run: ./scripts/build.ps1 -Version "${{steps.gitversion.outputs.LegacySemVerPadded}}"
+
+    - name: Publish build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.MODULE_NAME }}
+        path: |
+          bin/
+    
+    - name: Publish release artifact
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.MODULE_NAME }}.zip
+        path: ${{ env.MODULE_NAME }}.zip
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.MODULE_NAME }}
+          path: bin/
+
+      - name: Set PSModulePath
+        shell: pwsh
+        run: |
+          $PSModulePath = @(
+            [System.IO.Path]::Combine($Env:GITHUB_WORKSPACE, 'tmp', 'modules'),
+            $Env:PSModulePath
+          ) -join  [System.IO.Path]::PathSeparator
+          "PSModulePath=$PSModulePath" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Setup test reqs cache
+        id: testreqscache
+        uses: actions/cache@v3
+        with:
+          path: |
+            tmp/modules
+          key: ${{ hashFiles('scripts/testRequirements.ps1') }}
+
+      - name: Download required assemblies
+        if: steps.testreqscache.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: ./scripts/testRequirements.ps1
+
+      - name: Run tests
+        shell: pwsh
+        run: |
+          Import-Module -Name 'Pester' -ErrorAction 'Stop'
+
+          # $CodePaths = [System.Collections.ArrayList]::new()
+          # $CodePaths.AddRange((Get-ChildItem "$PSScriptRoot/../*.ps1").FullName)
+
+          $PesterConfiguration = [PesterConfiguration]::new()
+          $PesterConfiguration.TestResult.Enabled      = $true
+          $PesterConfiguration.TestResult.OutputFormat = 'JUnitXml'
+          $PesterConfiguration.CodeCoverage.Enabled    = $false
+          # $PesterConfiguration.CodeCoverage.Path       = $CodePaths.ToArray()
+
+          Invoke-Pester -Configuration $PesterConfiguration
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action/composite@v2
+        with:
+          files: testResults.xml
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ env.MODULE_NAME }}.zip
+
+    - name: Publish assets
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ${{ env.MODULE_NAME }}.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+    - name: Publish module to PSGallery
+      shell: pwsh
+      run: |
+        Expand-Archive -Path '${{ env.MODULE_NAME }}.zip'
+        Publish-Module -Path "./${{ env.MODULE_NAME }}/${{ env.MODULE_NAME }}" -NuGetApiKey $Env:PSGALLERY_KEY -Verbose
+      env:
+        PSGALLERY_KEY: ${{ secrets.PSGALLERY_KEY }}
