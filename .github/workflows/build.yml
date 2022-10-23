@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      DOTNET_INSTALL_DIR: ${{ env.GITHUB_WORKSPACE }}/tmp/dotnet
+      DOTNET_INSTALL_DIR: ${{ github.workspace }}/tmp/dotnet
       MODULE_NAME: AzExpressions
     steps:
     - uses: actions/checkout@v3
@@ -22,7 +22,7 @@ jobs:
       shell: pwsh
       run: |
         $PSModulePath = @(
-          [System.IO.Path]::Combine($Env:GITHUB_WORKSPACE, 'tmp', 'modules'),
+          [System.IO.Path]::Combine('${{ github.workspace }}', 'tmp', 'modules'),
           $Env:PSModulePath
         ) -join  [System.IO.Path]::PathSeparator
         "PSModulePath=$PSModulePath" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
@@ -90,7 +90,7 @@ jobs:
         shell: pwsh
         run: |
           $PSModulePath = @(
-            [System.IO.Path]::Combine($Env:GITHUB_WORKSPACE, 'tmp', 'modules'),
+            [System.IO.Path]::Combine('${{ github.workspace }}', 'tmp', 'modules'),
             $Env:PSModulePath
           ) -join  [System.IO.Path]::PathSeparator
           "PSModulePath=$PSModulePath" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
