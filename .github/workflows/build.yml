@@ -34,7 +34,8 @@ jobs:
           tmp/modules
           tmp/tools
           tmp/dotnet
-        key: ${{ hashFiles('scripts\downloadDependencies.ps1','packages.txt') }}
+          src/assets
+        key: ${{ hashFiles('scripts/downloadDependencies.ps1','packages.txt','.github/workflows/build.yml') }}
 
     - name: Setup.NET Core
       uses: actions/setup-dotnet@v3
