@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      DOTNET_INSTALL_DIR: $GITHUB_WORKSPACE/tmp/dotnet
+      DOTNET_INSTALL_DIR: ${{ env.GITHUB_WORKSPACE }}/tmp/dotnet
       MODULE_NAME: AzExpressions
     steps:
     - uses: actions/checkout@v3
