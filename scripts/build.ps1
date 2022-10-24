@@ -5,7 +5,14 @@ Import-Module 'platyPS' -ErrorAction 'Stop'
 
 Push-Location -Path "$PSScriptRoot/../src"
 $null = New-ExternalHelp -Path '../docs/en-US' -OutputPath './en-US'
-Build-Module
+
+try {
+    $Version = gitversion /showvariable LegacySemVerPadded
+}
+catch {
+    $Version = [string]::Empty
+}
+Build-Module -SemVer $Version
 Pop-Location
 
 Compress-Archive -Path "$PSScriptRoot/../bin/AzExpression" -DestinationPath "$PSScriptRoot/../AzExpression.zip" -Force
