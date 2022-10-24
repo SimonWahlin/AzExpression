@@ -8,4 +8,4 @@ $null = New-ExternalHelp -Path '../docs/en-US' -OutputPath './en-US'
 Build-Module
 Pop-Location
 
-Compress-Archive -Path "$PSScriptRoot/../bin/AzExpressions" -DestinationPath "$PSScriptRoot/../AzExpressions.zip" -Force
+Compress-Archive -Path "$PSScriptRoot/../bin/AzExpression" -DestinationPath "$PSScriptRoot/../AzExpression.zip" -Force
