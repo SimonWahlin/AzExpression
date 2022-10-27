@@ -2,6 +2,7 @@ function New-AzUniqueString {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
+        [AllowEmptyString()]
         [string[]]$InputStrings
     )
     
